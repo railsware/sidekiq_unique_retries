@@ -48,5 +48,4 @@ module SidekiqUniqueRetries
       end
     end
   end
-
 end
