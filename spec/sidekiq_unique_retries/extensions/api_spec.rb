@@ -8,6 +8,7 @@ RSpec.describe 'Sidekiq api' do
       'class' => 'Foo',
       'args' => [101],
       'jid' => 'jid_0',
+      'unique' => 'until_executed',
       'unique_digest' => 'uniquejobs:b'
     }
   end
@@ -63,5 +64,4 @@ RSpec.describe 'Sidekiq api' do
       end
     end
   end
-
 end

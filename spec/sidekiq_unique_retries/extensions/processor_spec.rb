@@ -3,15 +3,17 @@ require 'spec_helper'
 require 'sidekiq/processor'
 
 RSpec.describe Sidekiq::Processor do
-  let(:processor) { described_class.new(manager) }
-  let(:manager) { Struct.new(:options).new(manager_options) }
-  let(:manager_options) do
-    {
+  let(:processor) do
+    described_class.new(manager)
+  end
+  let(:manager) do
+    Struct.new(:options).new(
       queues: ['test']
-    }
+    )
   end
 
   let(:initial_lock_hash) { nil }
+
   let(:lock_hash) { $redis.hgetall('bg:uniqueretries') }
 
   before do
@@ -28,9 +30,11 @@ RSpec.describe Sidekiq::Processor do
 
     context 'single job' do
       let(:job_options) { {} }
+
       before do
         DivisionJob.set(
           {
+            unique: 'until_executed',
             unique_digest: 'digest1',
             jid: 'jid1',
             retry: 5
@@ -50,6 +54,7 @@ RSpec.describe Sidekiq::Processor do
             'retry_count' => 0,
             'queue' => 'test',
             'jid' => 'jid1',
+            'unique' => 'until_executed',
             'unique_digest' => 'digest1',
             'error_class' => 'ZeroDivisionError',
             'error_message' => 'divided by 0'
@@ -100,6 +105,7 @@ RSpec.describe Sidekiq::Processor do
               'retry_count' => 4,
               'queue' => 'test',
               'jid' => 'jid1',
+              'unique' => 'until_executed',
               'unique_digest' => 'digest1',
               'error_class' => 'ZeroDivisionError',
               'error_message' => 'divided by 0'
@@ -125,6 +131,7 @@ RSpec.describe Sidekiq::Processor do
               'retry_count' => 5,
               'queue' => 'test',
               'jid' => 'jid1',
+              'unique' => 'until_executed',
               'unique_digest' => 'digest1',
               'error_class' => 'ZeroDivisionError',
               'error_message' => 'divided by 0',
@@ -138,21 +145,25 @@ RSpec.describe Sidekiq::Processor do
     context 'multiple jpbs' do
       it 'puts only one unique jobs into retries set' do
         DivisionJob.set(
+          unique: 'until_executed',
           unique_digest: 'digest1',
           jid: 'jid1',
           retry: 1
         ).perform_async(1, 0)
         DivisionJob.set(
+          unique: 'until_executed',
           unique_digest: 'digest1',
           jid: 'jid2',
           retry: 1
         ).perform_async(2, 0)
         DivisionJob.set(
+          unique: 'until_executed',
           unique_digest: 'digest2',
           jid: 'jid3',
           retry: 1
         ).perform_async(3, 0)
         DivisionJob.set(
+          unique: 'until_executed',
           unique_digest: 'digest2',
           jid: 'jid4',
           retry: 1
@@ -171,6 +182,7 @@ RSpec.describe Sidekiq::Processor do
           'retry' => 1,
           'retry_count' => 0,
           'queue' => 'test',
+          'unique' => 'until_executed',
           'unique_digest' => 'digest1',
           'error_class' => 'ZeroDivisionError',
           'error_message' => 'divided by 0'
@@ -187,6 +199,7 @@ RSpec.describe Sidekiq::Processor do
           'retry' => 1,
           'retry_count' => 0,
           'queue' => 'test',
+          'unique' => 'until_executed',
           'unique_digest' => 'digest1',
           'error_class' => 'ZeroDivisionError',
           'error_message' => 'divided by 0'
@@ -203,6 +216,7 @@ RSpec.describe Sidekiq::Processor do
           'retry' => 1,
           'retry_count' => 0,
           'queue' => 'test',
+          'unique' => 'until_executed',
           'unique_digest' => 'digest1',
           'error_class' => 'ZeroDivisionError',
           'error_message' => 'divided by 0'
@@ -214,6 +228,7 @@ RSpec.describe Sidekiq::Processor do
           'retry' => 1,
           'retry_count' => 0,
           'queue' => 'test',
+          'unique' => 'until_executed',
           'unique_digest' => 'digest2',
           'error_class' => 'ZeroDivisionError',
           'error_message' => 'divided by 0'
@@ -230,6 +245,7 @@ RSpec.describe Sidekiq::Processor do
           'retry' => 1,
           'retry_count' => 0,
           'queue' => 'test',
+          'unique' => 'until_executed',
           'unique_digest' => 'digest1',
           'error_class' => 'ZeroDivisionError',
           'error_message' => 'divided by 0'
@@ -241,6 +257,7 @@ RSpec.describe Sidekiq::Processor do
           'retry' => 1,
           'retry_count' => 0,
           'queue' => 'test',
+          'unique' => 'until_executed',
           'unique_digest' => 'digest2',
           'error_class' => 'ZeroDivisionError',
           'error_message' => 'divided by 0'

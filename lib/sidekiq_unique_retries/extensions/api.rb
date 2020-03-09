@@ -3,7 +3,6 @@ require 'sidekiq/api'
 module SidekiqUniqueRetries
   module Extensions
     module SortedEntry
-
       def delete
         if SidekiqUniqueRetries.lockable?(item)
           SidekiqUniqueRetries.unlock(item)
@@ -27,7 +26,6 @@ module SidekiqUniqueRetries
 
         super
       end
-
     end
   end
 end

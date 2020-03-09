@@ -3,13 +3,16 @@ require 'sidekiq/job_retry'
 module SidekiqUniqueRetries
   module Extensions
     module JobRetry
-
       def attempt_retry(worker, msg, queue, exception)
         if SidekiqUniqueRetries.lockable?(msg)
-          raise exception unless SidekiqUniqueRetries.lock(msg)
+          if SidekiqUniqueRetries.lock(msg)
+            super
+          else
+            logger.info { "Ignore retry for #{msg['class']} job #{msg['jid']}" }
+          end
+        else
+          super
         end
-
-        super(worker, msg, queue, exception)
       end
 
       def retries_exhausted(worker, msg, exception)
@@ -17,9 +20,8 @@ module SidekiqUniqueRetries
           SidekiqUniqueRetries.unlock(msg)
         end
 
-        super(worker, msg, exception)
+        super
       end
-
     end
   end
 end
